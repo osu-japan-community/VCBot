@@ -15,6 +15,7 @@ public class Bot {
 
     private JDA jda;
     private int id;
+    private boolean isBotJoined = false;
     public Bot () {
         Dotenv dotenv = Dotenv.configure()
                 .load();
@@ -25,6 +26,14 @@ public class Bot {
 
     public String getTOKEN() {
         return TOKEN;
+    }
+
+    public boolean getBotJoined() {
+        return isBotJoined;
+    }
+
+    public void setBotJoined(boolean isBotJoined) {
+        this.isBotJoined = isBotJoined;
     }
 
     public JDA getJda() {

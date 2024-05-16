@@ -39,7 +39,7 @@ public class VoiceChat extends ListenerAdapter {
             return;
         }
 
-        boolean isBotJoined = false;
+        boolean isBotJoined = Main.bot.getBotJoined();
 
         for (Member m : e.getVoiceState().getChannel().getMembers()) {
             if (m.getUser().getIdLong() == 727508841368911943L) {
@@ -53,6 +53,8 @@ public class VoiceChat extends ListenerAdapter {
 
             manager.openAudioConnection(channel);
         }
+
+        Main.bot.setBotJoined(isBotJoined);
     }
 
     @Override
@@ -62,7 +64,7 @@ public class VoiceChat extends ListenerAdapter {
 
                 JSONObject queryJson = null;
 
-                int id = Main.bot.getId();
+                int id = Main.bot.getId() + 1;
 
                 HttpClient httpClient = HttpClient.newHttpClient();
                 HttpRequest request = HttpRequest.newBuilder()
@@ -87,10 +89,12 @@ public class VoiceChat extends ListenerAdapter {
                 HttpResponse<byte[]> r = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
                 if (r.statusCode() == 200) {
-                    Files.write(Path.of( (id+1) +".wav"), r.body());
+                    Files.write(Path.of( (id) +".wav"), r.body());
                 } else {
                     System.out.println("Error: " + response.statusCode());
                 }
+
+                Main.bot.setId(id);
             } catch (URISyntaxException ex) {
                 throw new RuntimeException(ex);
             } catch (IOException ex) {
@@ -98,14 +102,6 @@ public class VoiceChat extends ListenerAdapter {
             } catch (InterruptedException ex) {
                 throw new RuntimeException(ex);
             }
-        }
-    }
-
-    @Override
-    public void onGuildVoiceUpdate(GuildVoiceUpdateEvent e) {
-        //全員去った時 (エラー出る)
-        if (e.getChannelLeft() != null) {
-            e.getGuild().getAudioManager().closeAudioConnection();
         }
     }
 }
