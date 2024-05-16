@@ -1,11 +1,9 @@
 package net.mamesosu.Event;
 
-import com.sun.speech.freetts.FreeTTS;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceSelfMuteEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
@@ -19,10 +17,9 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VoiceChat extends ListenerAdapter {
 
@@ -33,7 +30,7 @@ public class VoiceChat extends ListenerAdapter {
 
         JDA jda = Main.bot.getJda();
 
-        System.out.println("onGuildVoiceSelfMute");
+        System.out.println(e.getVoiceState().getIdLong());
 
         if (e.getVoiceState().getChannel().getIdLong() != 1090163808556818552L) {
             return;
@@ -60,6 +57,14 @@ public class VoiceChat extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent e) {
         if (e.getChannel().getIdLong() == 1089160068689309713L) {
+
+            //ボイスチャットにプレイヤーが存在しているか
+            VoiceChannel voiceChannel = e.getGuild().getVoiceChannelById(1090163808556818552L);
+
+            if (voiceChannel.getMembers().isEmpty()) {
+                return;
+            }
+
             try {
 
                 JSONObject queryJson = null;
@@ -95,6 +100,7 @@ public class VoiceChat extends ListenerAdapter {
                 }
 
                 Main.bot.setId(id);
+
                 PlayerManager.getINSTANCE().loadAndPlay(e.getGuild(), (id) + ".wav");
             } catch (URISyntaxException ex) {
                 throw new RuntimeException(ex);
