@@ -95,6 +95,7 @@ public class VoiceChat extends ListenerAdapter {
                 }
 
                 Main.bot.setId(id);
+                PlayerManager.getINSTANCE().loadAndPlay(e.getGuild(), (id) + ".wav");
             } catch (URISyntaxException ex) {
                 throw new RuntimeException(ex);
             } catch (IOException ex) {
