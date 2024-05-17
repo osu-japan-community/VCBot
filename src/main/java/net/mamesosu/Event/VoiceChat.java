@@ -100,7 +100,7 @@ public class VoiceChat extends ListenerAdapter {
 
                 HttpClient httpClient = HttpClient.newHttpClient();
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(new URI("http://localhost:50021/audio_query?speaker=1&text=" + e.getMessage().getContentRaw()))
+                        .uri(new URI("http://localhost:50021/audio_query?speaker=1&text=" + (e.getMember().getUser().getName() + "さん、" + e.getMessage().getContentRaw())))
                         .version(HttpClient.Version.HTTP_1_1)
                         .POST(HttpRequest.BodyPublishers.noBody())
                         .build();
