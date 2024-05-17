@@ -1,5 +1,6 @@
 package net.mamesosu.Handle;
 
+import com.sedmelluq.discord.lavaplayer.container.wav.WavAudioTrack;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
@@ -29,7 +30,7 @@ public class PlayerManager {
     public GuildMusicManager getGuildMusicManager(Guild guild) {
         return musicManagers.computeIfAbsent(guild.getIdLong(), (guildID) -> {
             final GuildMusicManager guildMusicManager = new GuildMusicManager(audioPlayerManager);
-            guildMusicManager.audioPlayer.setVolume(100);
+            guild.getAudioManager().setSendingHandler(guildMusicManager.getSendHandler());
             return guildMusicManager;
         });
     }
@@ -39,13 +40,15 @@ public class PlayerManager {
         audioPlayerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(com.sedmelluq.discord.lavaplayer.track.AudioTrack track) {
-                musicManager.audioPlayer.playTrack(track);
+                System.out.println("load");
+                musicManager.scheduler.queue(track);
             }
 
             @Override
             public void playlistLoaded(com.sedmelluq.discord.lavaplayer.track.AudioPlaylist playlist) {
                 final List<AudioTrack> tracks = playlist.getTracks();
                 if(!tracks.isEmpty()) {
+                    System.out.println("load playlist");
                     musicManager.scheduler.queue(tracks.get(0));
                 }
             }

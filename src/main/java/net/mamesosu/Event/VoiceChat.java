@@ -39,7 +39,8 @@ public class VoiceChat extends ListenerAdapter {
         boolean isBotJoined = Main.bot.getBotJoined();
 
         for (Member m : e.getVoiceState().getChannel().getMembers()) {
-            if (m.getUser().getIdLong() == 727508841368911943L) {
+            //ボットか他の読み上げbotがいたら参加しないように
+            if (m.getUser().getIdLong() == 727508841368911943L || m.getUser().getIdLong() == 1240649156167471186L) {
                 isBotJoined = true;
             }
         }
@@ -101,7 +102,11 @@ public class VoiceChat extends ListenerAdapter {
 
                 Main.bot.setId(id);
 
-                PlayerManager.getINSTANCE().loadAndPlay(e.getGuild(), (id) + ".wav");
+                System.out.println("load");
+
+                Path fileName = Path.of("%s.wav".formatted(String.valueOf(id)));
+
+                PlayerManager.getINSTANCE().loadAndPlay(e.getGuild(),  fileName.toString());
             } catch (URISyntaxException ex) {
                 throw new RuntimeException(ex);
             } catch (IOException ex) {
