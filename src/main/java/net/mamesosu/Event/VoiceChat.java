@@ -81,6 +81,8 @@ public class VoiceChat extends ListenerAdapter {
             }
 
             e.getGuild().getAudioManager().closeAudioConnection();
+
+            Main.bot.setBotJoined(false);
         }
 
         else if (e.getChannel().getIdLong() == 1089160068689309713L) {
@@ -98,9 +100,25 @@ public class VoiceChat extends ListenerAdapter {
 
                 int id = Main.bot.getId() + 1;
 
+                String name, message;
+
+                if(e.getMember().getNickname() == null) {
+                    name = e.getMember().getEffectiveName();
+                } else {
+                    name = e.getMember().getNickname();
+                }
+
+                if (e.getMessage().getContentRaw().contains("http") || e.getMessage().getContentRaw().contains("http")) {
+                    message = "url";
+                } else if (e.getMessage().getContentRaw().isEmpty()) {
+                    message = "なんかのファイル添付なのだ";
+                } else {
+                    message = e.getMessage().getContentRaw();
+                }
+
                 HttpClient httpClient = HttpClient.newHttpClient();
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(new URI("http://localhost:50021/audio_query?speaker=1&text=" + (e.getMember().getUser().getName() + "さん、" + e.getMessage().getContentRaw())))
+                        .uri(new URI("http://localhost:50021/audio_query?speaker=1&text=" + (name + "さん、" + message)))
                         .version(HttpClient.Version.HTTP_1_1)
                         .POST(HttpRequest.BodyPublishers.noBody())
                         .build();
