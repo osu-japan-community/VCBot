@@ -9,6 +9,9 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Guild;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,11 +49,6 @@ public class PlayerManager {
 
             @Override
             public void playlistLoaded(com.sedmelluq.discord.lavaplayer.track.AudioPlaylist playlist) {
-                final List<AudioTrack> tracks = playlist.getTracks();
-                if(!tracks.isEmpty()) {
-                    System.out.println("load playlist");
-                    musicManager.scheduler.queue(tracks.get(0));
-                }
             }
 
             @Override
