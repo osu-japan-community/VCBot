@@ -28,6 +28,42 @@ public class VoiceChat extends ListenerAdapter {
 
     AudioManager manager;
 
+
+    private Path getConvertWavPath (String name, String message) throws URISyntaxException, IOException, InterruptedException {
+        JSONObject queryJson = null;
+
+        int id = Main.bot.getId() + 1;
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:50021/audio_query?speaker=1&text=" + (name + "さん、" + message)))
+                .version(HttpClient.Version.HTTP_1_1)
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        queryJson = new JSONObject(response.body());
+
+        httpClient = HttpClient.newHttpClient();
+        request = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:50021/synthesis?speaker=1"))
+                .version(HttpClient.Version.HTTP_1_1)
+                .POST(HttpRequest.BodyPublishers.ofString(queryJson.toString()))
+                .build();
+        HttpResponse<byte[]> r = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+        if (r.statusCode() == 200) {
+            Files.write(Path.of( (id) +".wav"), r.body());
+        } else {
+            System.out.println("Error: " + response.statusCode());
+        }
+
+        Main.bot.setId(id);
+
+        System.out.println("load");
+
+        return Path.of("%s.wav".formatted(String.valueOf(id)));
+    }
+
     @Override
     public void onGuildVoiceSelfMute(GuildVoiceSelfMuteEvent e) {
 
@@ -53,6 +89,19 @@ public class VoiceChat extends ListenerAdapter {
             VoiceChannel channel = e.getGuild().getVoiceChannelById(e.getVoiceState().getChannel().getIdLong());
 
             manager.openAudioConnection(channel);
+            Path fileName = null;
+            try {
+                fileName = getConvertWavPath("ずんだもん", "VCに接続したのだ");
+            } catch (URISyntaxException ex) {
+                throw new RuntimeException(ex);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            Main.bot.setId(Main.bot.getId() + 1);
+            PlayerManager.getINSTANCE().loadAndPlay(e.getGuild(),  fileName.toString());
         }
 
         Main.bot.setBotJoined(isBotJoined);
@@ -82,6 +131,8 @@ public class VoiceChat extends ListenerAdapter {
 
             e.getGuild().getAudioManager().closeAudioConnection();
 
+            e.getMessage().reply("VCを切断しました！").queue();
+
             Main.bot.setBotJoined(false);
         }
 
@@ -95,9 +146,6 @@ public class VoiceChat extends ListenerAdapter {
             }
 
             try {
-
-                JSONObject queryJson = null;
-
                 int id = Main.bot.getId() + 1;
 
                 String name, message;
@@ -116,39 +164,9 @@ public class VoiceChat extends ListenerAdapter {
                     message = e.getMessage().getContentRaw();
                 }
 
-                HttpClient httpClient = HttpClient.newHttpClient();
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(new URI("http://localhost:50021/audio_query?speaker=1&text=" + (name + "さん、" + message)))
-                        .version(HttpClient.Version.HTTP_1_1)
-                        .POST(HttpRequest.BodyPublishers.noBody())
-                        .build();
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                queryJson = new JSONObject(response.body());
-
-                if (queryJson == null) {
-                    System.out.println("Query JSON is null");
-                    return;
-                }
-
-                httpClient = HttpClient.newHttpClient();
-                request = HttpRequest.newBuilder()
-                        .uri(new URI("http://localhost:50021/synthesis?speaker=1"))
-                        .version(HttpClient.Version.HTTP_1_1)
-                        .POST(HttpRequest.BodyPublishers.ofString(queryJson.toString()))
-                        .build();
-                HttpResponse<byte[]> r = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
-
-                if (r.statusCode() == 200) {
-                    Files.write(Path.of( (id) +".wav"), r.body());
-                } else {
-                    System.out.println("Error: " + response.statusCode());
-                }
+                Path fileName = getConvertWavPath(name, message);
 
                 Main.bot.setId(id);
-
-                System.out.println("load");
-
-                Path fileName = Path.of("%s.wav".formatted(String.valueOf(id)));
 
                 PlayerManager.getINSTANCE().loadAndPlay(e.getGuild(),  fileName.toString());
             } catch (URISyntaxException ex) {
@@ -186,5 +204,7 @@ public class VoiceChat extends ListenerAdapter {
         }
 
         event.getGuild().getAudioManager().closeAudioConnection();
+
+        Main.bot.setBotJoined(false);
     }
 }
