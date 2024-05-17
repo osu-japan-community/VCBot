@@ -1,9 +1,12 @@
 package net.mamesosu.Event;
 
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceSelfMuteEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
@@ -57,7 +60,30 @@ public class VoiceChat extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent e) {
-        if (e.getChannel().getIdLong() == 1089160068689309713L) {
+
+        if (e.getMessage().getContentRaw().equals("!disconnect")) {
+            boolean isBotJoined = false;
+
+            if (e.getMember().getVoiceState() == null || e.getMember().getVoiceState().getChannel() == null) {
+                e.getMessage().reply("このコマンドはVCに参加しているときのみ実行できます！").queue();
+                return; // 自身がどのVCにも参加していない
+            }
+
+            for(Member m : e.getMember().getVoiceState().getChannel().getMembers()) {
+                if (m.getUser().getIdLong() == 1240649156167471186L) {
+                    isBotJoined = true;
+                }
+            }
+
+            if (!isBotJoined) {
+                e.getMessage().reply("このコマンドはVCに参加しているときのみ実行できます！").queue();
+                return; // 自身がどのVCにも参加していない
+            }
+
+            e.getGuild().getAudioManager().closeAudioConnection();
+        }
+
+        else if (e.getChannel().getIdLong() == 1089160068689309713L) {
 
             //ボイスチャットにプレイヤーが存在しているか
             VoiceChannel voiceChannel = e.getGuild().getVoiceChannelById(1090163808556818552L);
@@ -115,5 +141,32 @@ public class VoiceChat extends ListenerAdapter {
                 throw new RuntimeException(ex);
             }
         }
+    }
+
+    //Auto Disconnect
+    @Override
+    public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
+        if (event.getChannelJoined() != null || event.getChannelLeft() == null) return; // 退出以外は除外
+
+        if (event.getGuild().getSelfMember().getVoiceState() == null ||
+                event.getGuild().getSelfMember().getVoiceState().getChannel() == null) {
+            return; // 自身がどのVCにも参加していない
+        }
+        if (event.getGuild().getSelfMember().getVoiceState().getChannel().getIdLong() != event.getChannelLeft().getIdLong()) {
+            return; // 退出されたチャンネルが自身のいるVCと異なる
+        }
+
+        // VCに残ったユーザーが全員Bot、または誰もいなくなった
+        boolean existsUser = event
+                .getChannelLeft()
+                .getMembers()
+                .stream()
+                .anyMatch(member -> !member.getUser().isBot()); // Bot以外がいるかどうか
+
+        if (existsUser) {
+            return;
+        }
+
+        event.getGuild().getAudioManager().closeAudioConnection();
     }
 }

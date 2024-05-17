@@ -40,6 +40,7 @@ public class TrackScheduler extends AudioEventAdapter {
         if(endReason.mayStartNext) {
             nextTrack();
         }
+        // ファイルを削除するように (出力したwavファイル)
         try {
             Files.deleteIfExists(Path.of(track.getInfo().uri));
         } catch (IOException e) {
