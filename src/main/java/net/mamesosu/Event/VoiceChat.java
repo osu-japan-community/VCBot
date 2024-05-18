@@ -22,6 +22,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VoiceChat extends ListenerAdapter {
@@ -161,7 +163,8 @@ public class VoiceChat extends ListenerAdapter {
                 } else if (e.getMessage().getContentRaw().isEmpty()) {
                     message = "なんかのファイル添付なのだ";
                 } else {
-                    message = e.getMessage().getContentRaw();
+                    message = e.getMessage().getContentRaw().replaceAll("[ -/:-@\\[-`{-~]", "");
+                    System.out.println(message);
                 }
 
                 Path fileName = getConvertWavPath(name, message);
