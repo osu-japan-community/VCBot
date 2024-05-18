@@ -17,9 +17,11 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Dictionary;
@@ -40,7 +42,7 @@ public class VoiceChat extends ListenerAdapter {
 
         HttpClient httpClient = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:50021/audio_query?speaker=1&text=" + (name + message)))
+                .uri(new URI("http://localhost:50021/audio_query?speaker=1&text=" + URLEncoder.encode(name + message, StandardCharsets.UTF_8)))
                 .version(HttpClient.Version.HTTP_1_1)
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
