@@ -36,9 +36,11 @@ public class VoiceChat extends ListenerAdapter {
 
         int id = Main.bot.getId() + 1;
 
+        if(!name.equals("ずんだもん")) name += "さん、";
+
         HttpClient httpClient = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:50021/audio_query?speaker=1&text=" + (name + "さん、" + message)))
+                .uri(new URI("http://localhost:50021/audio_query?speaker=1&text=" + (name + message)))
                 .version(HttpClient.Version.HTTP_1_1)
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
@@ -66,6 +68,10 @@ public class VoiceChat extends ListenerAdapter {
         return Path.of("%s.wav".formatted(String.valueOf(id)));
     }
 
+    private String getUserName(Member member) {
+        return member.getNickname() == null ? member.getEffectiveName() : member.getNickname();
+    }
+
     @Override
     public void onGuildVoiceSelfMute(GuildVoiceSelfMuteEvent e) {
 
@@ -91,19 +97,6 @@ public class VoiceChat extends ListenerAdapter {
             VoiceChannel channel = e.getGuild().getVoiceChannelById(e.getVoiceState().getChannel().getIdLong());
 
             manager.openAudioConnection(channel);
-            Path fileName = null;
-            try {
-                fileName = getConvertWavPath("ずんだもん", "VCに接続したのだ");
-            } catch (URISyntaxException ex) {
-                throw new RuntimeException(ex);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
-            }
-
-            Main.bot.setId(Main.bot.getId() + 1);
-            PlayerManager.getINSTANCE().loadAndPlay(e.getGuild(),  fileName.toString());
         }
 
         Main.bot.setBotJoined(isBotJoined);
@@ -131,6 +124,10 @@ public class VoiceChat extends ListenerAdapter {
                 return; // 自身がどのVCにも参加していない
             }
 
+            if(e.getMember().getUser().isBot()) {
+                return;
+            }
+
             e.getGuild().getAudioManager().closeAudioConnection();
 
             e.getMessage().reply("VCを切断しました！").queue();
@@ -150,13 +147,7 @@ public class VoiceChat extends ListenerAdapter {
             try {
                 int id = Main.bot.getId() + 1;
 
-                String name, message;
-
-                if(e.getMember().getNickname() == null) {
-                    name = e.getMember().getEffectiveName();
-                } else {
-                    name = e.getMember().getNickname();
-                }
+                String message;
 
                 if (e.getMessage().getContentRaw().contains("http") || e.getMessage().getContentRaw().contains("http")) {
                     message = "url";
@@ -167,10 +158,9 @@ public class VoiceChat extends ListenerAdapter {
                     System.out.println(message);
                 }
 
-                Path fileName = getConvertWavPath(name, message);
+                Path fileName = getConvertWavPath(getUserName(e.getMember()), message);
 
                 Main.bot.setId(id);
-
                 PlayerManager.getINSTANCE().loadAndPlay(e.getGuild(),  fileName.toString());
             } catch (URISyntaxException ex) {
                 throw new RuntimeException(ex);
@@ -185,6 +175,25 @@ public class VoiceChat extends ListenerAdapter {
     //Auto Disconnect
     @Override
     public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
+
+        if (event.getChannelJoined() != null || event.getChannelLeft() == null) {
+            int id = Main.bot.getId() + 1;
+
+            Path fileName;
+            try {
+                fileName = getConvertWavPath(getUserName(event.getMember()), "がVCに参加しました");
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            Main.bot.setId(id);
+            PlayerManager.getINSTANCE().loadAndPlay(event.getGuild(),  fileName.toString());
+        }
+
         if (event.getChannelJoined() != null || event.getChannelLeft() == null) return; // 退出以外は除外
 
         if (event.getGuild().getSelfMember().getVoiceState() == null ||
@@ -194,6 +203,7 @@ public class VoiceChat extends ListenerAdapter {
         if (event.getGuild().getSelfMember().getVoiceState().getChannel().getIdLong() != event.getChannelLeft().getIdLong()) {
             return; // 退出されたチャンネルが自身のいるVCと異なる
         }
+
 
         // VCに残ったユーザーが全員Bot、または誰もいなくなった
         boolean existsUser = event
