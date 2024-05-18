@@ -1,12 +1,9 @@
 package net.mamesosu.Event;
 
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceSelfMuteEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
@@ -24,9 +21,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VoiceChat extends ListenerAdapter {
 
@@ -34,7 +28,7 @@ public class VoiceChat extends ListenerAdapter {
 
 
     private Path getConvertWavPath (String name, String message) throws URISyntaxException, IOException, InterruptedException {
-        JSONObject queryJson = null;
+        JSONObject queryJson;
 
         int id = Main.bot.getId() + 1;
 
@@ -76,10 +70,6 @@ public class VoiceChat extends ListenerAdapter {
 
     @Override
     public void onGuildVoiceSelfMute(GuildVoiceSelfMuteEvent e) {
-
-        JDA jda = Main.bot.getJda();
-
-        System.out.println(e.getVoiceState().getIdLong());
 
         if (e.getVoiceState().getChannel().getIdLong() != 1090163808556818552L) {
             return;
@@ -156,7 +146,11 @@ public class VoiceChat extends ListenerAdapter {
                 } else if (e.getMessage().getContentRaw().isEmpty()) {
                     message = "なんかのファイル添付なのだ";
                 } else {
-                    message = e.getMessage().getContentRaw().replaceAll("[ -/:-@\\[-`{-~]", "");
+                    System.out.println(e.getMessage().getContentRaw());
+                    message = e.getMessage().getContentRaw().replaceAll("<@\\d+>", "");
+                    message = message.replaceAll("<:\\w+:\\d+>", "");
+                    message = message.replaceAll("<\\w+:\\w+:\\d+>", "");
+                    message = message.replaceAll("[ -/:-@\\[-`{-~]", "");
                     System.out.println(message);
                 }
 
@@ -178,8 +172,9 @@ public class VoiceChat extends ListenerAdapter {
     @Override
     public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
 
+        int id = Main.bot.getId() + 1;
+
         if (event.getChannelJoined() != null || event.getChannelLeft() == null) {
-            int id = Main.bot.getId() + 1;
 
             Path fileName;
             try {
@@ -198,7 +193,6 @@ public class VoiceChat extends ListenerAdapter {
         }
 
         if (event.getChannelJoined() == null || event.getChannelLeft() != null) {
-            int id = Main.bot.getId() + 1;
 
             Path fileName;
             try {
