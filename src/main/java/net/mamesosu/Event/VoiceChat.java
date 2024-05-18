@@ -192,9 +192,27 @@ public class VoiceChat extends ListenerAdapter {
 
             Main.bot.setId(id);
             PlayerManager.getINSTANCE().loadAndPlay(event.getGuild(),  fileName.toString());
+            return;
         }
 
-        if (event.getChannelJoined() != null || event.getChannelLeft() == null) return; // 退出以外は除外
+        if (event.getChannelJoined() == null || event.getChannelLeft() != null) {
+            int id = Main.bot.getId() + 1;
+
+            Path fileName;
+            try {
+                fileName = getConvertWavPath(getUserName(event.getMember()), "がVCから退出しました");
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            Main.bot.setId(id);
+            PlayerManager.getINSTANCE().loadAndPlay(event.getGuild(),  fileName.toString());
+            return;
+        }
 
         if (event.getGuild().getSelfMember().getVoiceState() == null ||
                 event.getGuild().getSelfMember().getVoiceState().getChannel() == null) {
