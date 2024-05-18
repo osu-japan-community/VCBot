@@ -67,7 +67,7 @@ public class Bot {
                         CacheFlag.STICKER,
                         CacheFlag.SCHEDULED_EVENTS
                 ).setActivity(
-                        Activity.playing("for test"))
+                        Activity.watching("bad acc"))
                 .addEventListeners(
                     new VoiceChat()
                 )
