@@ -124,10 +124,6 @@ public class VoiceChat extends ListenerAdapter {
                 return; // 自身がどのVCにも参加していない
             }
 
-            if(e.getMember().getUser().isBot()) {
-                return;
-            }
-
             e.getGuild().getAudioManager().closeAudioConnection();
 
             e.getMessage().reply("VCを切断しました！").queue();
@@ -136,6 +132,10 @@ public class VoiceChat extends ListenerAdapter {
         }
 
         else if (e.getChannel().getIdLong() == 1089160068689309713L) {
+
+            if(e.getMember().getUser().isBot()) {
+                return;
+            }
 
             //ボイスチャットにプレイヤーが存在しているか
             VoiceChannel voiceChannel = e.getGuild().getVoiceChannelById(1090163808556818552L);
