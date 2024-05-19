@@ -21,7 +21,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
 
 public class VoiceChat extends ListenerAdapter {
 
@@ -72,7 +71,11 @@ public class VoiceChat extends ListenerAdapter {
     @Override
     public void onGuildVoiceSelfMute(GuildVoiceSelfMuteEvent e) {
 
-        if (Objects.requireNonNull(e.getVoiceState().getChannel()).getIdLong() != 1090163808556818552L) {
+        if (e.getVoiceState().getChannel() == null) {
+            return;
+        }
+
+        if (e.getVoiceState().getChannel().getIdLong() != 1090163808556818552L) {
             return;
         }
 
